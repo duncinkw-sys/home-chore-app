@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Chore App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Home Chore App</h1>
+
+        <div class="add-chore">
+            <input type="text" id="chore-input" placeholder="Enter a chore...">
+            <select id="assignee-select">
+                <option value="">Assign to...</option>
+            </select>
+            <button id="add-btn">Add Chore</button>
+        </div>
+
+        <div class="add-member">
+            <input type="text" id="member-input" placeholder="Add family member...">
+            <button id="add-member-btn">Add Member</button>
+        </div>
+
+        <div id="chore-list"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
