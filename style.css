@@ -693,3 +693,63 @@ h3 {
     clip: rect(0, 0, 0, 0);
     border: 0;
 }
+
+/* ---- MOBILE RESPONSIVE ---- */
+@media (max-width: 640px) {
+    body { padding: 0.75rem; }
+
+    h1 { font-size: 1.4rem; margin-bottom: 1rem; }
+
+    .tabs { gap: 0; }
+    .tab { padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+
+    .calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .calendar-nav h2 { font-size: 1rem; min-width: 140px; }
+
+    .cal-day { min-height: 70px; padding: 0.2rem; }
+    .cal-day-number { font-size: 0.7rem; }
+
+    .chore-chip { font-size: 0.6rem; padding: 1px 3px; }
+    .chore-chip .chip-member { display: none; }
+    .chore-chip .chip-pts { display: none; }
+    .chore-chip .chip-color-dot { width: 6px; height: 6px; }
+
+    .cal-week .cal-day { min-height: 120px; }
+
+    .cal-day .add-btn-cell {
+        opacity: 1;
+        width: 16px;
+        height: 16px;
+        font-size: 0.7rem;
+        line-height: 16px;
+    }
+
+    .modal { width: 95vw; }
+
+    .lb-racing-row { height: 42px; }
+    .lb-racing-rank { width: 36px; font-size: 1.1rem; }
+    .lb-racing-bar { font-size: 0.85rem; padding: 0 0.75rem; }
+    .lb-racing-score { font-size: 1.1rem; }
+
+    .settings-section { padding: 1rem; }
+    .add-row { flex-wrap: wrap; }
+    .add-row input { min-width: 0; }
+
+    .chip-popup { min-width: 140px; }
+
+    .chore-freq-tabs { flex-wrap: wrap; }
+}
+
+@media (max-width: 380px) {
+    .cal-day { min-height: 55px; }
+    .chore-chip .chip-name { font-size: 0.55rem; }
+    .cal-day-header { font-size: 0.65rem; padding: 0.3rem; }
+    .cal-week-header { font-size: 0.7rem; }
+
+    .legend { flex-wrap: wrap; gap: 0.5rem; font-size: 0.75rem; }
+    .calendar-toggle { align-self: flex-start; }
+}
