@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Chore App</title>
+    <meta name="description" content="Track and manage household chores for your family">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <h1>🏠 Home Chore App</h1>
 
-        <div class="add-chore">
+        <section class="add-chore" aria-label="Add a chore">
+            <label for="chore-input" class="sr-only">Chore name</label>
             <input type="text" id="chore-input" placeholder="Enter a chore...">
+            <label for="assignee-select" class="sr-only">Assignee</label>
             <select id="assignee-select">
                 <option value="">Assign to...</option>
             </select>
             <button id="add-btn">Add Chore</button>
-        </div>
+        </section>
 
-        <div class="add-member">
+        <section class="add-member" aria-label="Add a family member">
+            <label for="member-input" class="sr-only">Member name</label>
             <input type="text" id="member-input" placeholder="Add family member...">
             <button id="add-member-btn">Add Member</button>
-        </div>
+        </section>
 
-        <div id="chore-list"></div>
+        <section id="chore-list" aria-label="Chore list" role="list"></section>
     </div>
 
     <script src="app.js"></script>
