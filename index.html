@@ -4,28 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Chore App</title>
+    <meta name="description" content="Track and manage household chores for your family">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Chores">
+    <meta name="theme-color" content="#4a90d9">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🏠 Home Chore App</h1>
+        <h1 id="app-title" title="Click to edit">🏠 Our Family Chores</h1>
 
-        <div class="add-chore">
-            <input type="text" id="chore-input" placeholder="Enter a chore...">
-            <select id="assignee-select">
-                <option value="">Assign to...</option>
-            </select>
-            <button id="add-btn">Add Chore</button>
+        <nav class="tabs">
+            <button class="tab active" data-tab="calendar">Calendar</button>
+            <button class="tab" data-tab="leaderboard">Leaderboard</button>
+            <button class="tab" data-tab="settings">Settings</button>
+        </nav>
+
+        <!-- CALENDAR TAB -->
+        <section id="tab-calendar" class="tab-content active">
+            <div class="calendar-header">
+                <div class="calendar-nav">
+                    <button id="cal-prev" class="nav-btn">&larr;</button>
+                    <h2 id="cal-title"></h2>
+                    <button id="cal-next" class="nav-btn">&rarr;</button>
+                </div>
+                <div class="calendar-toggle">
+                    <button class="cal-view-btn active" data-view="month">Month</button>
+                    <button class="cal-view-btn" data-view="week">Week</button>
+                </div>
+                <div class="legend">
+                    <span class="legend-item"><span class="legend-dot owner"></span> Assigned</span>
+                    <span class="legend-item"><span class="legend-dot done"></span> Completed</span>
+                </div>
+            </div>
+            <div id="calendar-grid"></div>
+        </section>
+
+        <!-- LEADERBOARD TAB -->
+        <section id="tab-leaderboard" class="tab-content">
+            <h2>Leaderboard</h2>
+            <div id="leaderboard-container"></div>
+        </section>
+
+        <!-- SETTINGS TAB -->
+        <section id="tab-settings" class="tab-content">
+            <h2>Settings</h2>
+
+            <div class="settings-section">
+                <h3>App Title</h3>
+                <div class="add-row">
+                    <input type="text" id="title-input" placeholder="e.g. The Duncan Family Chores">
+                    <button id="save-title-btn">Save</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Family Members</h3>
+                <div class="add-row">
+                    <input type="text" id="member-input" placeholder="Add family member...">
+                    <button id="add-member-btn">Add</button>
+                </div>
+                <ul id="member-list" class="settings-list"></ul>
+            </div>
+
+            <div class="settings-section" id="chore-manager">
+                <h3>Chore Lists</h3>
+                <div class="chore-freq-tabs">
+                    <button class="freq-tab active" data-freq="daily">Daily (10 pts)</button>
+                    <button class="freq-tab" data-freq="weekly">Weekly (25 pts)</button>
+                    <button class="freq-tab" data-freq="monthly">Monthly (50 pts)</button>
+                </div>
+                <div id="chore-list-manager"></div>
+                <div class="add-row" style="margin-top:0.75rem;">
+                    <input type="text" id="new-chore-input" placeholder="Add new chore...">
+                    <button id="add-new-chore-btn">Add</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Data</h3>
+                <button id="reset-btn" class="danger-btn">Reset All Data</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- ADD CHORE MODAL -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Chore</h3>
+                <button id="modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div id="modal-body"></div>
         </div>
+    </div>
 
-        <div class="add-member">
-            <input type="text" id="member-input" placeholder="Add family member...">
-            <button id="add-member-btn">Add Member</button>
-        </div>
-
-        <div id="chore-list"></div>
+    <!-- CHIP POPUP (positioned dynamically) -->
+    <div id="chip-popup" class="chip-popup hidden">
+        <div id="chip-popup-content"></div>
     </div>
 
     <script src="app.js"></script>
+    <script>
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js");
+    }
+    </script>
 </body>
 </html>
