@@ -12,47 +12,29 @@
         <h1>🏠 Our Family Chores</h1>
 
         <nav class="tabs">
-            <button class="tab active" data-tab="weekly">Weekly Chores</button>
-            <button class="tab" data-tab="daily">Daily Chores</button>
-            <button class="tab" data-tab="monthly">Monthly Chores</button>
+            <button class="tab active" data-tab="calendar">Calendar</button>
             <button class="tab" data-tab="leaderboard">Leaderboard</button>
             <button class="tab" data-tab="settings">Settings</button>
         </nav>
 
-        <!-- WEEKLY CHORES TAB -->
-        <section id="tab-weekly" class="tab-content active">
-            <div class="chart-header">
-                <h2>Weekly Chore Chart</h2>
+        <!-- CALENDAR TAB -->
+        <section id="tab-calendar" class="tab-content active">
+            <div class="calendar-header">
+                <div class="calendar-nav">
+                    <button id="cal-prev" class="nav-btn">&larr;</button>
+                    <h2 id="cal-title"></h2>
+                    <button id="cal-next" class="nav-btn">&rarr;</button>
+                </div>
+                <div class="calendar-toggle">
+                    <button class="cal-view-btn active" data-view="month">Month</button>
+                    <button class="cal-view-btn" data-view="week">Week</button>
+                </div>
                 <div class="legend">
                     <span class="legend-item"><span class="legend-dot owner"></span> Assigned</span>
                     <span class="legend-item"><span class="legend-dot done"></span> Completed</span>
                 </div>
             </div>
-            <div class="chore-grid-wrapper">
-                <table class="chore-grid" id="weekly-grid">
-                    <thead>
-                        <tr>
-                            <th class="member-col">Member</th>
-                            <th>SUN</th><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th>
-                        </tr>
-                    </thead>
-                    <tbody id="weekly-body"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- DAILY CHORES TAB -->
-        <section id="tab-daily" class="tab-content">
-            <h2>Daily Chores</h2>
-            <p class="tab-subtitle">Upkeep &amp; mess prevention — reset every day</p>
-            <div id="daily-list" class="checklist"></div>
-        </section>
-
-        <!-- MONTHLY CHORES TAB -->
-        <section id="tab-monthly" class="tab-content">
-            <h2>Monthly / Seasonal Chores</h2>
-            <p class="tab-subtitle">Occasional deep maintenance</p>
-            <div id="monthly-list" class="checklist"></div>
+            <div id="calendar-grid"></div>
         </section>
 
         <!-- LEADERBOARD TAB -->
@@ -79,16 +61,17 @@
                 <ul id="member-list" class="settings-list"></ul>
             </div>
 
-            <div class="settings-section">
-                <h3>Add Custom Chore</h3>
-                <div class="add-row">
-                    <input type="text" id="custom-chore-input" placeholder="Chore name...">
-                    <select id="custom-chore-freq">
-                        <option value="weekly">Weekly</option>
-                        <option value="daily">Daily</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
-                    <button id="add-chore-btn">Add</button>
+            <div class="settings-section" id="chore-manager">
+                <h3>Chore Lists</h3>
+                <div class="chore-freq-tabs">
+                    <button class="freq-tab active" data-freq="daily">Daily (10 pts)</button>
+                    <button class="freq-tab" data-freq="weekly">Weekly (25 pts)</button>
+                    <button class="freq-tab" data-freq="monthly">Monthly (50 pts)</button>
+                </div>
+                <div id="chore-list-manager"></div>
+                <div class="add-row" style="margin-top:0.75rem;">
+                    <input type="text" id="new-chore-input" placeholder="Add new chore...">
+                    <button id="add-new-chore-btn">Add</button>
                 </div>
             </div>
 
@@ -97,6 +80,17 @@
                 <button id="reset-btn" class="danger-btn">Reset All Data</button>
             </div>
         </section>
+    </div>
+
+    <!-- ADD CHORE MODAL -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Chore</h3>
+                <button id="modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
     </div>
 
     <script src="app.js"></script>
