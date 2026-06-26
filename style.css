@@ -21,6 +21,20 @@ h1 {
     text-align: center;
     margin-bottom: 1.5rem;
     font-size: 2rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+h1:hover {
+    border-bottom-color: #4a90d9;
+}
+
+h1.editing {
+    outline: 2px solid #4a90d9;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    border-bottom-color: transparent;
 }
 
 h2 { margin-bottom: 0.75rem; }
@@ -291,6 +305,69 @@ h3 {
     opacity: 0.8;
 }
 
+.chore-chip .chip-color-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Chip Popup */
+.chip-popup {
+    position: fixed;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 200;
+    min-width: 160px;
+    overflow: hidden;
+}
+
+.chip-popup.hidden { display: none; }
+
+.chip-popup-btn {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.chip-popup-btn:last-child { border-bottom: none; }
+
+.chip-popup-btn:hover { background: #f0f6ff; }
+
+.chip-popup-btn.danger { color: #e74c3c; }
+.chip-popup-btn.danger:hover { background: #fde8e8; }
+
+.chip-popup-btn.success { color: #28a745; }
+.chip-popup-btn.success:hover { background: #e8f8ed; }
+
+.chip-popup-divider {
+    border-bottom: 1px solid #eee;
+    padding: 0.3rem 1rem;
+    font-size: 0.75rem;
+    color: #999;
+    font-weight: 600;
+}
+
+.chip-popup-member {
+    display: block;
+    width: 100%;
+    padding: 0.45rem 1rem 0.45rem 1.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.chip-popup-member:hover { background: #f0f6ff; }
+
 /* Modal */
 .modal-overlay {
     position: fixed;
@@ -337,7 +414,6 @@ h3 {
     padding: 1rem 1.25rem;
 }
 
-/* Modal step buttons */
 .modal-freq-btn {
     display: block;
     width: 100%;
@@ -419,30 +495,7 @@ h3 {
     background: #f0f6ff;
 }
 
-/* Leaderboard */
-.leaderboard-style-picker {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-}
-
-.lb-style-btn {
-    padding: 0.5rem 1rem;
-    border: 2px solid #ddd;
-    background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-
-.lb-style-btn.active {
-    border-color: #4a90d9;
-    background: #e8f0fe;
-    color: #4a90d9;
-    font-weight: 600;
-}
-
-/* Racing */
+/* Leaderboard — Racing Only */
 .lb-racing {
     display: flex;
     flex-direction: column;
@@ -485,82 +538,6 @@ h3 {
 .lb-racing-score {
     font-size: 1.5rem;
     font-weight: 900;
-}
-
-.lb-racing-row:nth-child(1) .lb-racing-bar { background: linear-gradient(90deg, #e63946, #d62828); }
-.lb-racing-row:nth-child(2) .lb-racing-bar { background: linear-gradient(90deg, #2a9d8f, #238b7e); }
-.lb-racing-row:nth-child(3) .lb-racing-bar { background: linear-gradient(90deg, #e9c46a, #d4a843); }
-.lb-racing-row:nth-child(4) .lb-racing-bar { background: linear-gradient(90deg, #457b9d, #3a6a88); }
-.lb-racing-row:nth-child(5) .lb-racing-bar { background: linear-gradient(90deg, #8338ec, #7029d4); }
-.lb-racing-row:nth-child(n+6) .lb-racing-bar { background: linear-gradient(90deg, #6c757d, #5a6268); }
-
-/* Scorecard */
-.lb-scorecard {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-.lb-scorecard table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-}
-
-.lb-scorecard th {
-    background: #f8f9fa;
-    padding: 0.5rem;
-    text-align: center;
-    font-weight: 700;
-    border-bottom: 2px solid #dee2e6;
-    font-size: 0.8rem;
-    color: #555;
-}
-
-.lb-scorecard th:first-child {
-    text-align: left;
-    padding-left: 1rem;
-}
-
-.lb-scorecard td {
-    padding: 0.45rem 0.5rem;
-    text-align: center;
-    border-bottom: 1px solid #eee;
-    font-weight: 600;
-}
-
-.lb-scorecard td:first-child {
-    text-align: left;
-    padding-left: 1rem;
-    font-weight: 700;
-}
-
-.lb-scorecard .score-high {
-    color: #dc3545;
-    font-weight: 700;
-}
-
-.lb-scorecard .score-low {
-    color: #28a745;
-    font-weight: 700;
-}
-
-.lb-scorecard .score-total {
-    font-weight: 900;
-    font-size: 1rem;
-}
-
-/* Plain */
-.lb-plain {
-    background: white;
-    border-radius: 8px;
-    padding: 1.25rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    font-family: "Courier New", Courier, monospace;
-    font-size: 0.9rem;
-    line-height: 1.8;
-    white-space: pre;
 }
 
 /* Settings */
@@ -607,6 +584,21 @@ h3 {
     align-items: center;
     padding: 0.5rem 0;
     border-bottom: 1px solid #f0f0f0;
+    gap: 0.5rem;
+}
+
+.settings-list .member-name {
+    flex: 1;
+}
+
+.settings-list .member-color-picker {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 0;
+    cursor: pointer;
+    background: none;
 }
 
 .settings-list .remove-btn {

@@ -1,5 +1,6 @@
 var DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 var POINTS = { daily: 10, weekly: 25, monthly: 50 };
+var COLOR_PALETTE = ["#e63946", "#2a9d8f", "#e9c46a", "#457b9d", "#8338ec", "#f4845f"];
 
 var DEFAULT_CHORES = {
     daily: [
@@ -39,7 +40,9 @@ var state = {
     choreEntries: load("choreEntries", {}),
     scores: load("scores", {}),
     customChores: load("customChores", { daily: [], weekly: [], monthly: [] }),
-    hiddenChores: load("hiddenChores", { daily: [], weekly: [], monthly: [] })
+    hiddenChores: load("hiddenChores", { daily: [], weekly: [], monthly: [] }),
+    memberColors: load("memberColors", {}),
+    appTitle: load("appTitle", "Our Family Chores")
 };
 
 function saveAll() {
@@ -48,6 +51,8 @@ function saveAll() {
     save("scores", state.scores);
     save("customChores", state.customChores);
     save("hiddenChores", state.hiddenChores);
+    save("memberColors", state.memberColors);
+    save("appTitle", state.appTitle);
 }
 
 // ---- MIGRATION from old format ----
@@ -55,15 +60,39 @@ function saveAll() {
     var oldWeekly = localStorage.getItem("weeklyAssignments");
     var oldDaily = localStorage.getItem("dailyChecks");
     var oldMonthly = localStorage.getItem("monthlyChecks");
-    var oldLog = localStorage.getItem("completionLog");
     if (!oldWeekly && !oldDaily && !oldMonthly) return;
-
     localStorage.removeItem("weeklyAssignments");
     localStorage.removeItem("dailyChecks");
     localStorage.removeItem("monthlyChecks");
     localStorage.removeItem("completionLog");
     saveAll();
 })();
+
+// ---- COLOR HELPERS ----
+function getMemberColor(member) {
+    if (state.memberColors[member]) return state.memberColors[member];
+    var idx = state.members.indexOf(member);
+    if (idx === -1) idx = 0;
+    return COLOR_PALETTE[idx % COLOR_PALETTE.length];
+}
+
+function ensureMemberColor(member) {
+    if (!state.memberColors[member]) {
+        var idx = state.members.indexOf(member);
+        if (idx === -1) idx = Object.keys(state.memberColors).length;
+        state.memberColors[member] = COLOR_PALETTE[idx % COLOR_PALETTE.length];
+    }
+}
+
+function darkenColor(hex, amount) {
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+    r = Math.max(0, Math.floor(r * (1 - amount)));
+    g = Math.max(0, Math.floor(g * (1 - amount)));
+    b = Math.max(0, Math.floor(b * (1 - amount)));
+    return "#" + [r, g, b].map(function (c) { return c.toString(16).padStart(2, "0"); }).join("");
+}
 
 // ---- CHORE HELPERS ----
 function getChoresForFreq(freq) {
@@ -78,19 +107,51 @@ function getChoresForFreq(freq) {
     return result;
 }
 
-function getAllChoreNames(freq) {
-    var names = [];
-    getChoresForFreq(freq).forEach(function (cat) {
-        cat.items.forEach(function (i) { names.push(i); });
-    });
-    return names;
-}
-
 function dateStr(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
 function todayStr() { return dateStr(new Date()); }
+
+// ---- APP TITLE ----
+var titleEl = document.getElementById("app-title");
+titleEl.textContent = "\u{1F3E0} " + state.appTitle;
+
+titleEl.addEventListener("click", function () {
+    titleEl.contentEditable = "true";
+    titleEl.classList.add("editing");
+    var text = state.appTitle;
+    titleEl.textContent = text;
+    titleEl.focus();
+    var range = document.createRange();
+    range.selectNodeContents(titleEl);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+});
+
+titleEl.addEventListener("blur", function () {
+    saveTitleFromEl();
+});
+
+titleEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        titleEl.blur();
+    }
+});
+
+function saveTitleFromEl() {
+    titleEl.contentEditable = "false";
+    titleEl.classList.remove("editing");
+    var text = titleEl.textContent.trim();
+    if (text) {
+        state.appTitle = text;
+    }
+    titleEl.textContent = "\u{1F3E0} " + state.appTitle;
+    document.getElementById("title-input").value = state.appTitle;
+    saveAll();
+}
 
 // ---- CALENDAR STATE ----
 var calView = "month";
@@ -124,33 +185,24 @@ document.querySelectorAll(".cal-view-btn").forEach(function (btn) {
 });
 
 document.getElementById("cal-prev").addEventListener("click", function () {
-    if (calView === "month") {
-        calDate.setMonth(calDate.getMonth() - 1);
-    } else {
-        calDate.setDate(calDate.getDate() - 7);
-    }
+    if (calView === "month") calDate.setMonth(calDate.getMonth() - 1);
+    else calDate.setDate(calDate.getDate() - 7);
     renderCalendar();
 });
 
 document.getElementById("cal-next").addEventListener("click", function () {
-    if (calView === "month") {
-        calDate.setMonth(calDate.getMonth() + 1);
-    } else {
-        calDate.setDate(calDate.getDate() + 7);
-    }
+    if (calView === "month") calDate.setMonth(calDate.getMonth() + 1);
+    else calDate.setDate(calDate.getDate() + 7);
     renderCalendar();
 });
 
 // ---- RENDER CALENDAR ----
 function renderCalendar() {
+    closeChipPopup();
     var container = document.getElementById("calendar-grid");
     var title = document.getElementById("cal-title");
-
-    if (calView === "month") {
-        renderMonthView(container, title);
-    } else {
-        renderWeekView(container, title);
-    }
+    if (calView === "month") renderMonthView(container, title);
+    else renderWeekView(container, title);
 }
 
 function renderMonthView(container, titleEl) {
@@ -219,7 +271,6 @@ function renderWeekView(container, titleEl) {
     for (var i = 0; i < 7; i++) {
         var wd = new Date(weekStart);
         wd.setDate(weekStart.getDate() + i);
-        var ds = dateStr(wd);
         html += '<div class="cal-week-header"><div class="day-name">' + DAYS[i] + '</div><div class="day-date">' + wd.getDate() + '</div></div>';
     }
 
@@ -247,7 +298,9 @@ function renderChoreChips(ds) {
     entries.forEach(function (entry, idx) {
         var cls = entry.done ? "done" : "owner";
         var pts = POINTS[entry.freq] || 0;
-        html += '<div class="chore-chip ' + cls + '" data-date="' + ds + '" data-idx="' + idx + '" title="' + (entry.done ? "Completed" : "Click to complete") + '">';
+        var color = getMemberColor(entry.member);
+        html += '<div class="chore-chip ' + cls + '" data-date="' + ds + '" data-idx="' + idx + '">';
+        html += '<span class="chip-color-dot" style="background:' + color + ';"></span>';
         html += '<span class="chip-name">' + escHtml(entry.name) + '</span>';
         html += '<span class="chip-member">' + escHtml(entry.member) + '</span>';
         html += '<span class="chip-pts">' + pts + '</span>';
@@ -276,12 +329,88 @@ function attachCalendarListeners(container) {
             e.stopPropagation();
             var ds = chip.dataset.date;
             var idx = parseInt(chip.dataset.idx);
-            toggleChoreCompletion(ds, idx);
+            showChipPopup(ds, idx, chip);
         });
     });
 }
 
-// ---- TOGGLE COMPLETION ----
+// ---- CHIP POPUP ----
+var chipPopup = document.getElementById("chip-popup");
+var chipPopupContent = document.getElementById("chip-popup-content");
+var activePopup = null;
+
+function showChipPopup(ds, idx, chipEl) {
+    closeChipPopup();
+    var entries = state.choreEntries[ds];
+    if (!entries || !entries[idx]) return;
+    var entry = entries[idx];
+
+    var html = '';
+    if (entry.done) {
+        html += '<button class="chip-popup-btn success" data-action="toggle">✓ Mark Undone</button>';
+    } else {
+        html += '<button class="chip-popup-btn success" data-action="toggle">✓ Mark Done</button>';
+    }
+    html += '<button class="chip-popup-btn" data-action="reassign">↻ Reassign</button>';
+    html += '<button class="chip-popup-btn danger" data-action="remove">✕ Remove</button>';
+
+    chipPopupContent.innerHTML = html;
+
+    var rect = chipEl.getBoundingClientRect();
+    chipPopup.style.top = (rect.bottom + 4) + "px";
+    chipPopup.style.left = rect.left + "px";
+    chipPopup.classList.remove("hidden");
+    activePopup = { ds: ds, idx: idx };
+
+    chipPopupContent.querySelector('[data-action="toggle"]').addEventListener("click", function () {
+        toggleChoreCompletion(ds, idx);
+        closeChipPopup();
+    });
+
+    chipPopupContent.querySelector('[data-action="remove"]').addEventListener("click", function () {
+        removeChoreEntry(ds, idx);
+        closeChipPopup();
+    });
+
+    chipPopupContent.querySelector('[data-action="reassign"]').addEventListener("click", function () {
+        showReassignList(ds, idx);
+    });
+}
+
+function showReassignList(ds, idx) {
+    var entry = state.choreEntries[ds][idx];
+    var html = '<div class="chip-popup-divider">Reassign to:</div>';
+    state.members.forEach(function (m) {
+        if (m === entry.member) return;
+        var color = getMemberColor(m);
+        html += '<button class="chip-popup-member" data-member="' + escAttr(m) + '"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + color + ';margin-right:6px;"></span>' + escHtml(m) + '</button>';
+    });
+    chipPopupContent.innerHTML = html;
+
+    chipPopupContent.querySelectorAll(".chip-popup-member").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            reassignChore(ds, idx, btn.dataset.member);
+            closeChipPopup();
+        });
+    });
+}
+
+function closeChipPopup() {
+    chipPopup.classList.add("hidden");
+    activePopup = null;
+}
+
+document.addEventListener("click", function (e) {
+    if (activePopup && !chipPopup.contains(e.target) && !e.target.closest(".chore-chip")) {
+        closeChipPopup();
+    }
+});
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeChipPopup();
+});
+
+// ---- CHORE ACTIONS ----
 function toggleChoreCompletion(ds, idx) {
     var entries = state.choreEntries[ds];
     if (!entries || !entries[idx]) return;
@@ -294,6 +423,32 @@ function toggleChoreCompletion(ds, idx) {
         entry.done = true;
         addScore(entry.member, entry.freq, POINTS[entry.freq]);
     }
+    saveAll();
+    renderCalendar();
+}
+
+function removeChoreEntry(ds, idx) {
+    var entries = state.choreEntries[ds];
+    if (!entries || !entries[idx]) return;
+    var entry = entries[idx];
+    if (entry.done) {
+        addScore(entry.member, entry.freq, -POINTS[entry.freq]);
+    }
+    entries.splice(idx, 1);
+    if (entries.length === 0) delete state.choreEntries[ds];
+    saveAll();
+    renderCalendar();
+}
+
+function reassignChore(ds, idx, newMember) {
+    var entries = state.choreEntries[ds];
+    if (!entries || !entries[idx]) return;
+    var entry = entries[idx];
+    if (entry.done) {
+        addScore(entry.member, entry.freq, -POINTS[entry.freq]);
+        addScore(newMember, entry.freq, POINTS[entry.freq]);
+    }
+    entry.member = newMember;
     saveAll();
     renderCalendar();
 }
@@ -330,7 +485,7 @@ function openAddChoreModal(ds) {
 }
 
 function showStep1() {
-    var html = "";
+    var html = '';
     html += '<button class="modal-freq-btn" data-freq="daily"><span class="freq-label">Daily Chores</span><span class="freq-pts">10 pts</span></button>';
     html += '<button class="modal-freq-btn" data-freq="weekly"><span class="freq-label">Weekly Chores</span><span class="freq-pts">25 pts</span></button>';
     html += '<button class="modal-freq-btn" data-freq="monthly"><span class="freq-label">Monthly Chores</span><span class="freq-pts">50 pts</span></button>';
@@ -387,7 +542,8 @@ function showStep3(freq, choreName) {
     html += '<p style="margin-bottom:0.75rem;color:#666;">Assign <strong>' + escHtml(choreName) + '</strong> to:</p>';
 
     state.members.forEach(function (member) {
-        html += '<button class="modal-member-btn" data-member="' + escAttr(member) + '">' + escHtml(member) + '</button>';
+        var color = getMemberColor(member);
+        html += '<button class="modal-member-btn" data-member="' + escAttr(member) + '"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + color + ';margin-right:8px;"></span>' + escHtml(member) + '</button>';
     });
 
     modalBody.innerHTML = html;
@@ -408,16 +564,7 @@ function addChoreEntry(ds, name, freq, member) {
     saveAll();
 }
 
-// ---- LEADERBOARD ----
-document.querySelectorAll(".lb-style-btn").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        document.querySelectorAll(".lb-style-btn").forEach(function (b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-        renderLeaderboard();
-    });
-});
-
+// ---- LEADERBOARD (Racing Only) ----
 function getScores() {
     var scores = [];
     state.members.forEach(function (member) {
@@ -430,7 +577,6 @@ function getScores() {
 
 function renderLeaderboard() {
     var container = document.getElementById("leaderboard-container");
-    var style = document.querySelector(".lb-style-btn.active").dataset.style;
     var scores = getScores();
 
     if (scores.length === 0) {
@@ -438,17 +584,13 @@ function renderLeaderboard() {
         return;
     }
 
-    if (style === "racing") renderRacing(container, scores);
-    else if (style === "scorecard") renderScorecard(container, scores);
-    else renderPlain(container, scores);
-}
-
-function renderRacing(container, scores) {
     var html = '<div class="lb-racing">';
     scores.forEach(function (s, i) {
+        var color = getMemberColor(s.name);
+        var darkColor = darkenColor(color, 0.15);
         html += '<div class="lb-racing-row">';
         html += '<div class="lb-racing-rank">' + (i + 1) + '</div>';
-        html += '<div class="lb-racing-bar">';
+        html += '<div class="lb-racing-bar" style="background:linear-gradient(90deg,' + color + ',' + darkColor + ');">';
         html += '<span>' + escHtml(s.name) + '</span>';
         html += '<span class="lb-racing-score">' + s.total + ' pts</span>';
         html += '</div></div>';
@@ -457,63 +599,45 @@ function renderRacing(container, scores) {
     container.innerHTML = html;
 }
 
-function renderScorecard(container, scores) {
-    var maxScore = 0;
-    var minScore = Infinity;
-    scores.forEach(function (s) {
-        if (s.total > maxScore) maxScore = s.total;
-        if (s.total < minScore) minScore = s.total;
-    });
-
-    var html = '<div class="lb-scorecard"><table>';
-    html += '<thead><tr><th>MEMBER</th><th>DAILY</th><th>WEEKLY</th><th>MONTHLY</th><th>TOTAL</th></tr></thead><tbody>';
-    scores.forEach(function (s) {
-        var cls = s.total === maxScore && scores.length > 1 ? "score-high" : (s.total === minScore && scores.length > 1 ? "score-low" : "");
-        html += '<tr>';
-        html += '<td>' + escHtml(s.name) + '</td>';
-        html += '<td>' + s.daily + '</td>';
-        html += '<td>' + s.weekly + '</td>';
-        html += '<td>' + s.monthly + '</td>';
-        html += '<td class="score-total ' + cls + '">' + s.total + '</td>';
-        html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
-}
-
-function renderPlain(container, scores) {
-    var lines = [];
-    lines.push("CHORE LEADERBOARD (Points)");
-    lines.push("==========================");
-    lines.push("");
-    lines.push(pad("Rank", 6) + pad("Name", 16) + pad("Daily", 8) + pad("Weekly", 8) + pad("Monthly", 9) + "Total");
-    lines.push("----  --------------  ------  ------  -------  -----");
-    scores.forEach(function (s, i) {
-        lines.push(pad("#" + (i + 1), 6) + pad(s.name, 16) + pad(String(s.daily), 8) + pad(String(s.weekly), 8) + pad(String(s.monthly), 9) + s.total);
-    });
-    container.innerHTML = '<div class="lb-plain">' + escHtml(lines.join("\n")) + '</div>';
-}
-
 // ---- SETTINGS ----
 function renderSettings() {
     renderMemberList();
     renderChoreManager();
+    document.getElementById("title-input").value = state.appTitle;
 }
 
 function renderMemberList() {
     var list = document.getElementById("member-list");
     list.innerHTML = "";
     state.members.forEach(function (m, i) {
+        ensureMemberColor(m);
         var li = document.createElement("li");
-        li.innerHTML = '<span>' + escHtml(m) + '</span>';
+
+        var nameSpan = document.createElement("span");
+        nameSpan.className = "member-name";
+        nameSpan.textContent = m;
+
+        var colorPicker = document.createElement("input");
+        colorPicker.type = "color";
+        colorPicker.className = "member-color-picker";
+        colorPicker.value = state.memberColors[m];
+        colorPicker.addEventListener("input", function () {
+            state.memberColors[m] = colorPicker.value;
+            saveAll();
+        });
+
         var btn = document.createElement("button");
         btn.className = "remove-btn";
         btn.textContent = "Remove";
         btn.addEventListener("click", function () {
             state.members.splice(i, 1);
+            delete state.memberColors[m];
             saveAll();
             renderMemberList();
         });
+
+        li.appendChild(nameSpan);
+        li.appendChild(colorPicker);
         li.appendChild(btn);
         list.appendChild(li);
     });
@@ -524,6 +648,7 @@ document.getElementById("add-member-btn").addEventListener("click", function () 
     var name = input.value.trim();
     if (!name || state.members.indexOf(name) !== -1) return;
     state.members.push(name);
+    ensureMemberColor(name);
     input.value = "";
     saveAll();
     renderMemberList();
@@ -531,6 +656,21 @@ document.getElementById("add-member-btn").addEventListener("click", function () 
 
 document.getElementById("member-input").addEventListener("keypress", function (e) {
     if (e.key === "Enter") document.getElementById("add-member-btn").click();
+});
+
+// ---- TITLE SETTINGS ----
+document.getElementById("save-title-btn").addEventListener("click", function () {
+    var input = document.getElementById("title-input");
+    var text = input.value.trim();
+    if (text) {
+        state.appTitle = text;
+        titleEl.textContent = "\u{1F3E0} " + state.appTitle;
+        saveAll();
+    }
+});
+
+document.getElementById("title-input").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") document.getElementById("save-title-btn").click();
 });
 
 // ---- CHORE MANAGER ----
@@ -632,6 +772,9 @@ document.getElementById("reset-btn").addEventListener("click", function () {
     state.scores = {};
     state.customChores = { daily: [], weekly: [], monthly: [] };
     state.hiddenChores = { daily: [], weekly: [], monthly: [] };
+    state.memberColors = {};
+    state.appTitle = "Our Family Chores";
+    titleEl.textContent = "\u{1F3E0} " + state.appTitle;
     renderCalendar();
     renderSettings();
 });
